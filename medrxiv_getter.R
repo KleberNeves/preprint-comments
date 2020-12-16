@@ -14,6 +14,8 @@ extractCommentCounts <- function(item){
   if(length(item)>1){
     tibble(
       doi = str_replace(str_extract(item$link, "10.1101.*"), "v.*", ""),
+      version = str_extract(str_extract(item$link, "10.1101.*"), "v.*"),
+      url = paste0(item$link, "?versioned=true"),
       disqus_thread_id = item$id,
       comments_count = item$posts,
       year = str_extract(item$link, "10[.]1101/[0-9]{4}")
@@ -52,7 +54,6 @@ medrxiv_comment_counts <- map_dfr(medrxiv_data, extractCommentCounts) %>%
   group_by(doi) %>%
   mutate(comments_count = sum(comments_count)) %>%
   ungroup() %>%
-  select(doi, comments_count) %>%
   distinct() %>%
   mutate(Year = as.numeric(str_extract(str_extract(doi, "10[.]1101/[0-9]{4}"),"[0-9]{4}$")))
 
