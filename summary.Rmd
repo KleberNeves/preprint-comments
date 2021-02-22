@@ -1,0 +1,77 @@
+---
+title: "Summary of comments biorxiv/medrxiv"
+author: "Kleber Neves"
+output:
+  html_document:
+    df_print: paged
+---
+
+Data from biorxiv downloaded 22/fev/2021. Data from medrxiv downloaded 22/fev/2021. Saved only preprints published in 2020.
+
+```{r, echo=FALSE, include=FALSE}
+knitr::opts_chunk$set(echo = F, warning = F, message = F)
+```
+
+```{r}
+library(tidyverse)
+library(glue)
+
+theme_set(theme_minimal())
+```
+
+```{r}
+biorxiv_comments = read_delim("preprints with comments (2020, biorxiv).csv", ";") %>%
+  mutate(server = "biorxiv")
+medrxiv_comments = read_delim("preprints with comments (2020, medrxiv).csv", ";") %>%
+  mutate(server = "medrxiv")
+
+preprint_comments = rbind(biorxiv_comments %>% select(doi, comments, server),
+                          medrxiv_comments %>% select(doi, comments, server))
+```
+
+```{r}
+hist_plot = function (df, keys, cutoff = 1000) {
+  df = df %>% filter(comments < cutoff)
+  ggplot(df) +
+    aes(x = comments) +
+    geom_histogram(bins = max(df$comments, na.rm = T)) +
+    labs(title = glue("Histogram of comments by paper, 2020, {keys$server[1]}, cutoff = {cutoff}"))
+}
+```
+
+```{r, include=TRUE}
+preprint_comments %>% group_by(server) %>% group_map(hist_plot)
+preprint_comments %>% group_by(server) %>% group_map(hist_plot, cutoff = 50)
+```
+
+```{r}
+minutes_per_comment = 4
+average_hours_per_person_week = 2
+
+summary_table = map_dfr(c(1, 5, 10, 15, 20, 100), function (limit) {
+  summary_table = preprint_comments %>%
+    filter(comments >= limit) %>%
+    group_by(server) %>%
+    summarise(
+      Preprints = n(),
+      Comments = sum(comments),
+      Cutoff = limit
+    ) %>%
+    ungroup() %>%
+    mutate(
+      TotalHours = Comments * minutes_per_comment / 60,
+      PerPerson_5 = TotalHours / 5,
+      PerPerson_10 = TotalHours / 10,
+      PerPerson_15 = TotalHours / 15,
+      Weeks_with_5 = PerPerson_5 / 2,
+      Weeks_with_10 = PerPerson_10 / 2,
+      Weeks_with_15 = PerPerson_15 / 2
+    )
+})
+```
+
+Time estimates assuming it takes `r minutes_per_comment` minutes per comment and that each person contributes `r average_hours_per_person_week` hours per week.
+```{r, include=TRUE}
+knitr::kable(summary_table, digits = 1)
+```
+
