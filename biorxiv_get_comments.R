@@ -38,17 +38,13 @@ get_comments_from_biorxiv = function () {
 comments = get_comments_from_biorxiv()
 
 start_date = "2020-1-1"
+end_date = "2021-1-1"
 
 papers_with_comments = comments %>%
   mutate(date = ymd(date)) %>%
-  filter(date > ymd(start_date)) %>%
+  filter(date > ymd(start_date), date < ymd(end_date)) %>%
   group_by(doi, url) %>%
   summarise(comments = n())
-
-p = ggplot(papers_with_comments) + aes(x = comments) + geom_histogram(bins = max(papers_with_comments$comments, na.rm = F)) + ggtitle("histogram of comments by paper (2020, biorxiv)")
-p
-
-ggsave("histogram of comments by paper (2020, biorxiv).png", p, width = 8, height = 5)
 
 write.table(papers_with_comments, "preprints with comments (2020, biorxiv).csv", row.names = F, sep = ";")
 

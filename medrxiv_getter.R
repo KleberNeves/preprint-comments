@@ -49,19 +49,16 @@ while(has_next == T) {
   print (n)
 }
 
+save(medrxiv_data, file = "medrxiv_data.RData")
+
 medrxiv_comment_counts <- map_dfr(medrxiv_data, extractCommentCounts) %>%
   distinct() %>%
   group_by(doi) %>%
-  mutate(comments_count = sum(comments_count)) %>%
+  mutate(comments = sum(comments_count)) %>%
   ungroup() %>%
   distinct() %>%
   mutate(Year = as.numeric(str_extract(str_extract(doi, "10[.]1101/[0-9]{4}"),"[0-9]{4}$")))
 
-medrxiv_preprints_with_comments = medrxiv_comment_counts %>% filter(comments_count > 0, Year == 2020)
+papers_with_comments = medrxiv_comment_counts %>% filter(comments_count > 0, Year == 2020)
 
-p = ggplot(papers_with_comments) + aes(x = comments) + geom_histogram(bins = max(papers_with_comments$comments, na.rm = F)) + ggtitle("histogram of comments by paper (2020, medrxiv)")
-p
-
-ggsave("histogram of comments by paper (2020, medrxiv).png", p, width = 8, height = 5)
-
-write.table(medrxiv_preprints_with_comments, "preprints with comments (2020, medrxiv).csv", row.names = F, sep = ";")
+write.table(papers_with_comments, "preprints with comments (2020, medrxiv).csv", row.names = F, sep = ";")
