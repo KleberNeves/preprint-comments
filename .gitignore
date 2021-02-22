@@ -2,10 +2,8 @@
 .Rhistory
 .RData
 .Ruserdata
-preprints with comments (2020, biorxiv).csv
-preprints with comments (2020, medrxiv).csv
 preprints-biorxiv.Rproj
 comments (2020, biorxiv).csv
-summary.html
 summary.nb.html
-summary.Rmd
+histogram of comments by paper (2020, medrxiv).png
+histogram of comments by paper (2020, biorxiv).png
